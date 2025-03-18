@@ -60,7 +60,7 @@ st.title("🤖 Challenge Mentor AI")
 st.subheader("Guía interactiva para definir tu reto en el modelo TEC21 de Mecatrónica.")
 st.markdown(
     "Este asistente te ayudará paso a paso a estructurar tu reto dentro del enfoque de **Challenge-Based Learning (CBL)**. "
-    "Primero recibirás **retroalimentación** antes de generar un reto definitivo."")
+    "Primero recibirás **retroalimentación** antes de generar un reto definitivo.")
 
 # **🔹 Preguntas clave en el formulario**
 with st.form("challenge_form"):
