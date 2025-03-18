@@ -3,16 +3,23 @@ from langchain_community.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 
-# Leer la API Key desde Streamlit Secrets
-API_KEY = st.secrets["OPENROUTER_API_KEY"]
+# Verifica si la API Key se carga correctamente
+if "OPENROUTER_API_KEY" not in st.secrets:
+    st.error("❌ ERROR: No se encontró OPENROUTER_API_KEY en Streamlit Secrets.")
+    st.stop()
+
+API_KEY = st.secrets["OPENROUTER_API_KEY"]  # Carga la API Key desde Streamlit Secrets
 API_BASE = "https://openrouter.ai/api/v1"
 MODEL_NAME = "deepseek/deepseek-r1:free"
+
+# Mostrar la API Key de forma segura (solo los primeros 5 caracteres)
+st.write(f"🔑 API Key detectada: {API_KEY[:5]}********")
 
 # Crear el modelo de lenguaje con LangChain
 llm = ChatOpenAI(
     openai_api_key=API_KEY,
     openai_api_base=API_BASE,
-    model_name=MODEL_NAME  # Sin headers ni model_kwargs
+    model_name=MODEL_NAME
 )
 
 # Plantilla del prompt
