@@ -2,3 +2,7 @@ streamlit
 openai
 reportlab
 requests
+langchain
+google-search-results
+streamlit-chat
+streamlit_javascript
