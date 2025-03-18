@@ -9,7 +9,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 
 #  **Rol Correcto del Chatbot (Solo para uso interno)** 
 INSTRUCCIONES_SISTEMA = """
-Eres Challenge Mentor AI, un asistente diseñado para ayudar a estudiantes de Mecatrónica en el modelo TEC21
+Eres "Challenge Mentor AI", un asistente diseñado para ayudar a estudiantes de Mecatrónica en el modelo TEC21
 a definir su reto dentro del enfoque de Challenge-Based Learning (CBL). Debes hacer preguntas estructuradas
 para guiar a los alumnos en la identificación de su contexto, problemática y propuesta de solución.
 
@@ -60,7 +60,7 @@ def obtener_respuesta_chat(messages):
 
     # Verificar si la respuesta contiene referencias falsas y eliminarlas
     if "DOI" in respuesta or "et al." in respuesta or "gov.mx" in respuesta or "10." in respuesta:
-        return "Fuente no encontrada. La información proporcionada es de carácter general y debe verificarse en bases de datos académicas."
+        return "La información proporcionada debe verificarse en bases de datos académicas. Sin embargo, basándonos en tu contexto, aquí hay un análisis: " + respuesta
 
     return respuesta
 
