@@ -151,7 +151,7 @@ if st.session_state.interacciones_chat >= 3:
         content.append(Paragraph(f"<b>{role}</b> {msg['content']}", styles["Normal"]))
         content.append(Spacer(1, 12))
 
-    content.append(Paragraph("<b>Los retos sugeridos podrían ser:</b>", styles["Heading2"]))
+    
 
     doc.build(content)
     pdf_buffer.seek(0)
