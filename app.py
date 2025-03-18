@@ -1,66 +1,148 @@
-import openai
 import streamlit as st
-from streamlit_chat import message
-import json
+import openai
+from io import BytesIO
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+
+# ✅ **Rol Correcto del Chatbot (Solo para uso interno)** 
+INSTRUCCIONES_SISTEMA = """
+Eres Challenge Mentor AI, un asistente diseñado para ayudar a estudiantes de Mecatrónica en el modelo TEC21
+a definir su reto dentro del enfoque de Challenge-Based Learning (CBL). Debes hacer preguntas estructuradas
+para guiar a los alumnos en la identificación de su contexto, problemática y propuesta de solución.
+
+🔹 No propongas retos hasta que el estudiante haya definido el contexto, problemática y propuesta de solución.
+🔹 Pregunta sobre el estado del arte y su fuente de información.
+🔹 Investiga qué necesita su socio formador (SIEMENS, Rockwell, emprendimiento, etc.).
+🔹 Clasifica automáticamente al usuario en un perfil basado en sus respuestas, sin preguntarle directamente.
+🔹 Adapta el tono según el perfil: usa términos técnicos para Especialistas, hipótesis para Investigadores, y mercado para Emprendedores.
+🔹 Usa frases motivadoras y estructuradas para guiar el proceso.
+
+Cuando proporciones datos, SIEMPRE debes incluir referencias reales.
+Si no tienes una fuente confiable, responde con "Fuente no encontrada".
+No inventes citas en formato APA o referencias falsas.
+Si la información proviene de tu entrenamiento, indica que es un dato general y no tiene fuente.
+"""
 
 # Leer la API Key desde Streamlit Secrets
 API_KEY = st.secrets["OPENROUTER_API_KEY"]
 API_BASE = "https://openrouter.ai/api/v1"
 MODEL_NAME = "deepseek/deepseek-r1:free"
 
-# Inicializar cliente OpenAI con nueva API
-client = openai.OpenAI(
-    base_url=API_BASE,
-    api_key=API_KEY
-)
-
-st.title("💬 Streamlit GPT")
-
-if "messages" not in st.session_state:
-    st.session_state["messages"] = [
-        {"role": "assistant", "content": "How can I help you?"}
-    ]
-
-with st.form("chat_input", clear_on_submit=True):
-    a, b = st.columns([4, 1])
-    user_input = a.text_input(
-        label="Your message:",
-        placeholder="What would you like to say?",
-        label_visibility="collapsed",
+# **🔹 Función para obtener respuesta del chatbot**
+def obtener_respuesta_chat(messages):
+    client = openai.OpenAI(
+        api_key=API_KEY,
+        base_url=API_BASE
     )
-    b.form_submit_button("Send", use_container_width=True)
+    completion = client.chat.completions.create(
+        model=MODEL_NAME,
+        messages=[{"role": "system", "content": INSTRUCCIONES_SISTEMA}] + messages
+    )
+    return completion.choices[0].message.content
 
-# Mostrar mensajes previos
-for i, msg in enumerate(st.session_state.messages):
-    if isinstance(msg, dict) and "content" in msg and "role" in msg:
-        message(msg["content"], is_user=msg["role"] == "user", key=f"msg_{i}")
+# **🔹 Inicializar historial de mensajes y estado si no existen**
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+if "responses" not in st.session_state:
+    st.session_state.responses = {}
+
+if "retroalimentacion_completada" not in st.session_state:
+    st.session_state.retroalimentacion_completada = False
+
+if "interacciones_chat" not in st.session_state:
+    st.session_state.interacciones_chat = 0
+
+# **🔹 Título e introducción**
+st.title("🤖 Challenge Mentor AI")
+st.subheader("Guía interactiva para definir tu reto en el modelo TEC21 de Mecatrónica.")
+st.markdown(
+    "Este asistente te ayudará paso a paso a estructurar tu reto dentro del enfoque de **Challenge-Based Learning (CBL)**. "
+    "Primero recibirás **retroalimentación** antes de generar un reto definitivo."")
+
+# **🔹 Preguntas clave en el formulario**
+with st.form("challenge_form"):
+    nombre_proyecto = st.text_input("📌 Nombre del Proyecto", help="Ejemplo: Inspección automática con IA")
+    contexto = st.text_area("🌍 Contexto", help="Describe en qué área de Mecatrónica se centra tu proyecto.")
+    problema = st.text_area("❌ Problema Principal", help="Explica qué problema intenta resolver tu proyecto.")
+    impacto = st.text_area("🎯 Impacto del Problema", help="¿Cómo afecta este problema al público objetivo?")
+    propuesta_solucion = st.text_area("💡 Propuesta de Solución", help="¿Qué idea tienes para solucionarlo?")
+    
+    tipo_proyecto = st.selectbox(
+        "⚙️ Tipo de Proyecto",
+        ["Desarrollo tecnológico", "Investigación", "Emprendimiento - Prueba de concepto", "Emprendimiento - Prototipo comercial"]
+    )
+
+    perfil_usuario = st.selectbox(
+        "👤 Perfil del Usuario",
+        ["Ingeniero Innovador", "Emprendedor Estratégico", "Investigador Analítico", "Solucionador Creativo", "Especialista Técnico"]
+    )
+
+    submit_button = st.form_submit_button("📢 Dame una Retroalimentación")
+
+# **🔹 Procesar el formulario y mostrar respuestas**
+if submit_button:
+    if not nombre_proyecto or not contexto or not problema or not propuesta_solucion:
+        st.warning("⚠️ Completa todos los campos antes de continuar.")
     else:
-        st.warning(f"Formato de mensaje incorrecto en índice {i}: {msg}")
+        st.session_state.responses = {
+            "📌 Nombre del Proyecto": nombre_proyecto,
+            "🌍 Contexto": contexto,
+            "❌ Problema Principal": problema,
+            "🎯 Impacto": impacto,
+            "💡 Propuesta de Solución": propuesta_solucion,
+            "⚙️ Tipo de Proyecto": tipo_proyecto,
+            "👤 Perfil del Usuario": perfil_usuario
+        }
 
-if user_input:
-    st.session_state.messages.append({"role": "user", "content": user_input})
-    message(user_input, is_user=True, key=f"user_{len(st.session_state.messages)}")
+        user_message = "\n".join([f"**{key}:** {value}" for key, value in st.session_state.responses.items()])
+        st.session_state.messages.append({"role": "user", "content": user_message})
 
-    try:
-        response = client.chat.completions.create(
-            model=MODEL_NAME,
-            messages=st.session_state.messages,
-            extra_headers={
-                "HTTP-Referer": "https://yourwebsite.com",  # Opcional
-                "X-Title": "Streamlit GPT",  # Opcional
-            }
-        )
+        with st.spinner("📢 Generando retroalimentación..."):
+            respuesta_chatbot = obtener_respuesta_chat(st.session_state.messages)
 
-        # Verificar que la respuesta tenga el formato esperado
-        if response and hasattr(response, "choices") and len(response.choices) > 0:
-            msg = response.choices[0].message
-            if hasattr(msg, "content") and hasattr(msg, "role"):
-                st.session_state.messages.append({"role": msg.role, "content": msg.content})
-                message(msg.content, is_user=False, key=f"assistant_{len(st.session_state.messages)}")
-            else:
-                st.error("Formato de respuesta inesperado.")
+        st.session_state.messages.append({"role": "assistant", "content": respuesta_chatbot})
+        st.session_state.retroalimentacion_completada = True
+        st.rerun()
+
+# **🔹 Mostrar la conversación después de la retroalimentación**
+if st.session_state.retroalimentacion_completada:
+    st.subheader("📝 Historial de Conversación")
+    for msg in st.session_state.messages:
+        if msg["role"] == "user":
+            st.markdown(f"👨‍🎓 **Tú:** {msg['content']}")
+        elif msg["role"] == "assistant":
+            st.markdown(f"🤖 **Challenge Mentor AI:** {msg['content']}")
+
+    user_input = st.text_area("💬 Escribe aquí tu pregunta:", height=100)
+    if st.button("Enviar"):
+        if user_input.strip():
+            st.session_state.messages.append({"role": "user", "content": user_input})
+            with st.spinner("🤖 Generando respuesta..."):
+                chatbot_response = obtener_respuesta_chat(st.session_state.messages)
+            st.session_state.messages.append({"role": "assistant", "content": chatbot_response})
+            st.session_state.interacciones_chat += 1
+            st.rerun()
         else:
-            st.error("La respuesta de la API está vacía o mal formada.")
+            st.warning("⚠️ Por favor, escribe tu pregunta antes de enviar.")
 
-    except Exception as e:
-        st.error(f"Error: {e}")
+# **🔹 Botón de descarga después de 3 interacciones**
+if st.session_state.interacciones_chat >= 3:
+    st.subheader("📄 Descargar Reporte de la Conversación")
+    pdf_buffer = BytesIO()
+    pdf = canvas.Canvas(pdf_buffer, pagesize=letter)
+    pdf.setTitle("Reporte de Conversación - Challenge Mentor AI")
+    y = 750
+    pdf.setFont("Helvetica-Bold", 14)
+    pdf.drawString(100, y, "Reporte de Conversación - Challenge Mentor AI")
+    y -= 30
+    pdf.setFont("Helvetica", 12)
+    for msg in st.session_state.messages:
+        pdf.drawString(100, y, f"{msg['role'].capitalize()}: {msg['content']}")
+        y -= 20
+        if y < 50:
+            pdf.showPage()
+            y = 750
+    pdf.save()
+    pdf_buffer.seek(0)
+    st.download_button("📄 Descargar Reporte en PDF", data=pdf_buffer, file_name="Reporte_Challenge_Mentor_AI.pdf", mime="application/pdf")
