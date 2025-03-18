@@ -8,6 +8,12 @@ API_KEY = "sk-or-v1-5d8983f4e80e57aff3c2c4c9fa4d7914cf60140ba0b9e9b1b8d18fe6c833
 API_BASE = "https://openrouter.ai/api/v1"
 MODEL_NAME = "deepseek/deepseek-r1:free"
 
+# Inicializar cliente OpenAI con nueva API
+client = openai.OpenAI(
+    base_url=API_BASE,
+    api_key=API_KEY
+)
+
 st.title("💬 Streamlit GPT")
 
 if "messages" not in st.session_state:
@@ -30,26 +36,20 @@ for i, msg in enumerate(st.session_state.messages):
 if user_input:
     st.session_state.messages.append({"role": "user", "content": user_input})
     message(user_input, is_user=True)
-    
-    openai.api_key = API_KEY
-    openai.api_base = API_BASE
 
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model=MODEL_NAME,
             messages=st.session_state.messages,
-            headers={
+            extra_headers={
                 "HTTP-Referer": "https://yourwebsite.com",  # Opcional
                 "X-Title": "Streamlit GPT",  # Opcional
-            },
+            }
         )
 
-        if isinstance(response, str):  # Manejo de respuesta en formato str
-            response = json.loads(response)
-
-        msg = response["choices"][0]["message"]
+        msg = response.choices[0].message
         st.session_state.messages.append(msg)
-        message(msg["content"])
+        message(msg.content)
 
     except Exception as e:
         st.error(f"Error: {e}")
