@@ -36,7 +36,9 @@ def obtener_respuesta_chat(messages):
 
     headers = {
         "Authorization": f"Bearer {API_KEY}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://yourwebsite.com",  # Cámbialo o elimínalo si no lo necesitas
+        "X-Title": "Challenge Mentor AI"
     }
 
     payload = {
@@ -45,7 +47,7 @@ def obtener_respuesta_chat(messages):
     }
 
     try:
-        response = requests.post(f"{BASE_URL}/chat/completions", headers=headers, data=json.dumps(payload))
+        response = requests.post(f"{BASE_URL}/chat/completions", headers=headers, json=payload)
 
         if response.status_code == 200:
             return response.json()["choices"][0]["message"]["content"]
