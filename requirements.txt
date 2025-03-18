@@ -6,3 +6,4 @@ langchain
 google-search-results
 streamlit-chat
 streamlit_javascript
+tiktoken
