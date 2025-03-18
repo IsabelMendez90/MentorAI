@@ -1,34 +1,32 @@
 import streamlit as st
-from langchain_community.chat_models import ChatOpenAI
-from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
+from langchain_openai import ChatOpenAI  # ✅ Cambió de módulo
+from langchain_core.prompts import PromptTemplate  # ✅ Nuevo módulo
+from langchain_core.runnables import RunnableLambda  # ✅ Nuevo método
 
-# Verifica si la API Key se carga correctamente
-if "OPENROUTER_API_KEY" not in st.secrets:
-    st.error("❌ ERROR: No se encontró OPENROUTER_API_KEY en Streamlit Secrets.")
-    st.stop()
-
-API_KEY = st.secrets["OPENROUTER_API_KEY"]  # Carga la API Key desde Streamlit Secrets
+# Leer la API Key desde Streamlit Secrets
+API_KEY = st.secrets["OPENROUTER_API_KEY"]
 API_BASE = "https://openrouter.ai/api/v1"
 MODEL_NAME = "deepseek/deepseek-r1:free"
 
-# Mostrar la API Key de forma segura (solo los primeros 5 caracteres)
+# Verificar si la API Key se carga correctamente
+if not API_KEY or API_KEY == "sk-or********":
+    st.error("❌ ERROR: No se encontró una API Key válida en Streamlit Secrets.")
+    st.stop()
+
 st.write(f"🔑 API Key detectada: {API_KEY[:5]}********")
 
-# Crear el modelo de lenguaje con LangChain
+# ✅ Crear el modelo de lenguaje con el nuevo módulo de LangChain
 llm = ChatOpenAI(
-    openai_api_key=API_KEY,
-    openai_api_base=API_BASE,
-    model_name=MODEL_NAME
+    api_key=API_KEY,
+    base_url=API_BASE,
+    model=MODEL_NAME
 )
 
-# Plantilla del prompt
-template = """Question: {question}
-Answer: Let's think step by step."""
-prompt = PromptTemplate(template=template, input_variables=["question"])
+# ✅ Nueva forma de definir el prompt en LangChain 1.0
+prompt = PromptTemplate.from_template("Question: {question}\nAnswer:")
 
-# Cadena LLM en LangChain
-llm_chain = LLMChain(prompt=prompt, llm=llm)
+# ✅ Nueva forma de ejecutar el modelo
+chain = prompt | llm | RunnableLambda(lambda x: x["content"])
 
 # ---------------- STREAMLIT UI ----------------
 st.title("💬 Chat con LangChain y OpenRouter")
@@ -56,7 +54,7 @@ if user_input:
 
     # Obtener respuesta del modelo
     try:
-        response = llm_chain.run(user_input)
+        response = chain.invoke({"question": user_input})  # ✅ Cambió `.run()` por `.invoke()`
         st.session_state.messages.append({"role": "assistant", "content": response})
         st.chat_message("assistant").write(response)
 
