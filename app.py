@@ -62,14 +62,14 @@ st.markdown(
     "Este asistente te ayudará paso a paso a estructurar tu reto dentro del enfoque de **Challenge-Based Learning (CBL)**. "
     "Primero recibirás **retroalimentación** antes de generar un reto definitivo.")
 
-# **🔹 Preguntas clave en el formulario**
+# ✅ **Formulario para capturar información del usuario**
 with st.form("challenge_form"):
-    nombre_proyecto = st.text_input("📌 Nombre del Proyecto", help="Ejemplo: Inspección automática con IA")
-    contexto = st.text_area("🌍 Contexto", help="Describe en qué área de Mecatrónica se centra tu proyecto.")
-    problema = st.text_area("❌ Problema Principal", help="Explica qué problema intenta resolver tu proyecto.")
-    impacto = st.text_area("🎯 Impacto del Problema", help="¿Cómo afecta este problema al público objetivo?")
-    propuesta_solucion = st.text_area("💡 Propuesta de Solución", help="¿Qué idea tienes para solucionarlo?")
-    
+    nombre_proyecto = st.text_input("📌 Nombre del Proyecto")
+    contexto = st.text_area("🌍 Contexto")
+    problema = st.text_area("❌ Problema Principal")
+    impacto = st.text_area("🎯 Impacto del Problema")
+    propuesta_solucion = st.text_area("💡 Propuesta de Solución")
+
     tipo_proyecto = st.selectbox(
         "⚙️ Tipo de Proyecto",
         ["Desarrollo tecnológico", "Investigación", "Emprendimiento - Prueba de concepto", "Emprendimiento - Prototipo comercial"]
@@ -82,7 +82,7 @@ with st.form("challenge_form"):
 
     submit_button = st.form_submit_button("📢 Dame una Retroalimentación")
 
-# **🔹 Procesar el formulario y mostrar respuestas**
+# ✅ **Procesar información del formulario**
 if submit_button:
     if not nombre_proyecto or not contexto or not problema or not propuesta_solucion:
         st.warning("⚠️ Completa todos los campos antes de continuar.")
@@ -97,11 +97,62 @@ if submit_button:
             "👤 Perfil del Usuario": perfil_usuario
         }
 
-        user_message = "\n".join([f"{key}: {value}" for key, value in st.session_state.responses.items()])
+        user_message = "\n".join([f"**{key}:** {value}" for key, value in st.session_state.responses.items()])
         st.session_state.messages.append({"role": "user", "content": user_message})
 
         with st.spinner("📢 Generando retroalimentación..."):
             respuesta_chatbot = obtener_respuesta_chat(st.session_state.messages)
 
         st.session_state.messages.append({"role": "assistant", "content": respuesta_chatbot})
-        st.session_state.retro
+        st.session_state.retroalimentacion_completada = True
+        st.rerun()
+
+# ✅ **Mostrar historial de conversación**
+if st.session_state.retroalimentacion_completada:
+    st.subheader("📝 Historial de Conversación")
+    for msg in st.session_state.messages:
+        if msg["role"] == "user":
+            st.markdown(f"👨‍🎓 **Tú:** {msg['content']}")
+        elif msg["role"] == "assistant":
+            st.markdown(f"🤖 **Challenge Mentor AI:** {msg['content']}")
+
+    user_input = st.text_area("💬 Escribe aquí tu pregunta:", height=100)
+
+    if st.button("Enviar"):
+        if user_input.strip():
+            st.session_state.messages.append({"role": "user", "content": user_input})
+
+            with st.spinner("🤖 Generando respuesta..."):
+                chatbot_response = obtener_respuesta_chat(st.session_state.messages)
+
+            st.session_state.messages.append({"role": "assistant", "content": chatbot_response})
+
+            st.session_state.interacciones_chat += 1
+            st.rerun()
+        else:
+            st.warning("⚠️ Por favor, escribe tu pregunta antes de enviar.")
+
+# ✅ **Descargar Reporte en PDF**
+if st.session_state.interacciones_chat >= 3:
+    st.subheader("📄 Descargar Reporte de la Conversación")
+    pdf_buffer = BytesIO()
+    pdf = canvas.Canvas(pdf_buffer, pagesize=letter)
+    pdf.setTitle("Reporte de Conversación - Challenge Mentor AI")
+
+    y = 750  # Posición vertical inicial
+    pdf.setFont("Helvetica-Bold", 14)
+    pdf.drawString(100, y, "Reporte de Conversación - Challenge Mentor AI")
+    y -= 30
+
+    pdf.setFont("Helvetica", 12)
+    for msg in st.session_state.messages:
+        pdf.drawString(100, y, f"{msg['role'].capitalize()}: {msg['content']}")
+        y -= 20
+        if y < 50:
+            pdf.showPage()
+            y = 750
+
+    pdf.save()
+    pdf_buffer.seek(0)
+
+    st.download_button(label="📄 Descargar Reporte en PDF", data=pdf_buffer, file_name="Reporte_Challenge_Mentor_AI.pdf", mime="application/pdf")
