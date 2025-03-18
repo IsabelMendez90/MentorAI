@@ -30,12 +30,16 @@ with st.form("chat_input", clear_on_submit=True):
     )
     b.form_submit_button("Send", use_container_width=True)
 
+# Mostrar mensajes previos
 for i, msg in enumerate(st.session_state.messages):
-    message(msg["content"], is_user=msg["role"] == "user", key=i)
+    if isinstance(msg, dict) and "content" in msg and "role" in msg:
+        message(msg["content"], is_user=msg["role"] == "user", key=f"msg_{i}")
+    else:
+        st.warning(f"Formato de mensaje incorrecto en índice {i}: {msg}")
 
 if user_input:
     st.session_state.messages.append({"role": "user", "content": user_input})
-    message(user_input, is_user=True)
+    message(user_input, is_user=True, key=f"user_{len(st.session_state.messages)}")
 
     try:
         response = client.chat.completions.create(
@@ -47,9 +51,16 @@ if user_input:
             }
         )
 
-        msg = response.choices[0].message
-        st.session_state.messages.append(msg)
-        message(msg.content)
+        # Verificar que la respuesta tenga el formato esperado
+        if response and hasattr(response, "choices") and len(response.choices) > 0:
+            msg = response.choices[0].message
+            if hasattr(msg, "content") and hasattr(msg, "role"):
+                st.session_state.messages.append({"role": msg.role, "content": msg.content})
+                message(msg.content, is_user=False, key=f"assistant_{len(st.session_state.messages)}")
+            else:
+                st.error("Formato de respuesta inesperado.")
+        else:
+            st.error("La respuesta de la API está vacía o mal formada.")
 
     except Exception as e:
         st.error(f"Error: {e}")
