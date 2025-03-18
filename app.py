@@ -16,7 +16,7 @@ para guiar a los alumnos en la identificación de su contexto, problemática y p
 🔹 No propongas retos hasta que el estudiante haya definido el contexto, problemática y propuesta de solución.
 🔹 No les des ningún código a menos que el usuario te lo pida explícitametne.
 🔹 Pregunta sobre el estado del arte y su fuente de información.
-🔹 Investiga qué necesita su socio formador (SIEMENS, Rockwell, emprendimiento, etc.).
+🔹 Investiga qué necesita el socio formador o cliente (SIEMENS, Rockwell, emprendimiento, etc.).
 🔹 Si el usuario dice que no sabe, explícale cómo responder con ejemplos claros.
 🔹 Clasifica automáticamente al usuario en un perfil basado en sus respuestas, sin preguntarle directamente.
 🔹 Adapta el tono según el perfil: usa términos técnicos para Especialistas, hipótesis para Investigadores, y mercado para Emprendedores de prueba de concepto y Emprendedores de prototipo comercial.
@@ -83,6 +83,8 @@ with st.form("challenge_form"):
         ["Ingeniero Innovador", "Emprendedor Estratégico", "Investigador Analítico", "Solucionador Creativo", "Especialista Técnico"]
     )
 
+    socio_formador = st.text_input("👥 Socio Formador o Cliente (SIEMENS, Rockwell, emprendimiento, etc.)")
+
     submit_button = st.form_submit_button("📢 Dame una Retroalimentación")
 
 # ✅ **Procesar información del formulario**
@@ -98,6 +100,7 @@ if submit_button:
             "💡 Propuesta de Solución": propuesta_solucion,
             "⚙️ Tipo de Proyecto": tipo_proyecto,
             "👤 Perfil del Usuario": perfil_usuario
+            "👥 Socio Formador o Cliente": socio_formador
         }
 
         user_message = "\n".join([f"**{key}:** {value}" for key, value in st.session_state.responses.items()])
