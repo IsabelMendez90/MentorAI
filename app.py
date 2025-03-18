@@ -3,10 +3,10 @@ import openai
 from io import BytesIO
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-
+import os
 
 # Configurar la API de OpenRouter
-API_KEY = "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"
+API_KEY = os.getenv("OPENAI_API_KEY")
 BASE_URL = "https://openrouter.ai/api/v1"
 
 
