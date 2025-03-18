@@ -99,7 +99,7 @@ if submit_button:
             "🎯 Impacto": impacto,
             "💡 Propuesta de Solución": propuesta_solucion,
             "⚙️ Tipo de Proyecto": tipo_proyecto,
-            "👤 Perfil del Usuario": perfil_usuario
+            "👤 Perfil del Usuario": perfil_usuario,
             "👥 Socio Formador o Cliente": socio_formador
         }
 
