@@ -1,5 +1,5 @@
 import streamlit as st
-from langchain_community.chat_models import ChatOpenAI  # Cambio aquí
+from langchain_community.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 
@@ -12,13 +12,7 @@ MODEL_NAME = "deepseek/deepseek-r1:free"
 llm = ChatOpenAI(
     openai_api_key=API_KEY,
     openai_api_base=API_BASE,
-    model_name=MODEL_NAME,
-    model_kwargs={
-        "headers": {
-            "HTTP-Referer": "https://yourwebsite.com",
-            "X-Title": "Streamlit GPT",
-        }
-    },
+    model_name=MODEL_NAME  # Sin headers ni model_kwargs
 )
 
 # Plantilla del prompt
