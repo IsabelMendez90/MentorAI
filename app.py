@@ -1,62 +1,66 @@
+import openai
 import streamlit as st
-from langchain_openai import ChatOpenAI  # ✅ Cambió de módulo
-from langchain_core.prompts import PromptTemplate  # ✅ Nuevo módulo
-from langchain_core.runnables import RunnableLambda  # ✅ Nuevo método
+from streamlit_chat import message
+import json
 
 # Leer la API Key desde Streamlit Secrets
 API_KEY = st.secrets["OPENROUTER_API_KEY"]
 API_BASE = "https://openrouter.ai/api/v1"
 MODEL_NAME = "deepseek/deepseek-r1:free"
 
-# Verificar si la API Key se carga correctamente
-if not API_KEY or API_KEY == "sk-or********":
-    st.error("❌ ERROR: No se encontró una API Key válida en Streamlit Secrets.")
-    st.stop()
-
-st.write(f"🔑 API Key detectada: {API_KEY[:5]}********")
-
-# ✅ Crear el modelo de lenguaje con el nuevo módulo de LangChain
-llm = ChatOpenAI(
-    api_key=API_KEY,
+# Inicializar cliente OpenAI con nueva API
+client = openai.OpenAI(
     base_url=API_BASE,
-    model=MODEL_NAME
+    api_key=API_KEY
 )
 
-# ✅ Nueva forma de definir el prompt en LangChain 1.0
-prompt = PromptTemplate.from_template("Question: {question}\nAnswer:")
+st.title("💬 Streamlit GPT")
 
-# ✅ Nueva forma de ejecutar el modelo
-chain = prompt | llm | RunnableLambda(lambda x: x["content"])
-
-# ---------------- STREAMLIT UI ----------------
-st.title("💬 Chat con LangChain y OpenRouter")
-
-# Inicializar historial de mensajes en sesión
 if "messages" not in st.session_state:
     st.session_state["messages"] = [
-        {"role": "assistant", "content": "Hello! How can I help you?"}
+        {"role": "assistant", "content": "How can I help you?"}
     ]
 
-# Formulario para ingresar la pregunta
 with st.form("chat_input", clear_on_submit=True):
     a, b = st.columns([4, 1])
-    user_input = a.text_input("Your message:", placeholder="Ask me something...")
+    user_input = a.text_input(
+        label="Your message:",
+        placeholder="What would you like to say?",
+        label_visibility="collapsed",
+    )
     b.form_submit_button("Send", use_container_width=True)
 
-# Mostrar mensajes previos en la interfaz
+# Mostrar mensajes previos
 for i, msg in enumerate(st.session_state.messages):
-    st.chat_message(msg["role"]).write(msg["content"])
+    if isinstance(msg, dict) and "content" in msg and "role" in msg:
+        message(msg["content"], is_user=msg["role"] == "user", key=f"msg_{i}")
+    else:
+        st.warning(f"Formato de mensaje incorrecto en índice {i}: {msg}")
 
 if user_input:
-    # Agregar mensaje del usuario al historial
     st.session_state.messages.append({"role": "user", "content": user_input})
-    st.chat_message("user").write(user_input)
+    message(user_input, is_user=True, key=f"user_{len(st.session_state.messages)}")
 
-    # Obtener respuesta del modelo
     try:
-        response = chain.invoke({"question": user_input})  # ✅ Cambió `.run()` por `.invoke()`
-        st.session_state.messages.append({"role": "assistant", "content": response})
-        st.chat_message("assistant").write(response)
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=st.session_state.messages,
+            extra_headers={
+                "HTTP-Referer": "https://yourwebsite.com",  # Opcional
+                "X-Title": "Streamlit GPT",  # Opcional
+            }
+        )
+
+        # Verificar que la respuesta tenga el formato esperado
+        if response and hasattr(response, "choices") and len(response.choices) > 0:
+            msg = response.choices[0].message
+            if hasattr(msg, "content") and hasattr(msg, "role"):
+                st.session_state.messages.append({"role": msg.role, "content": msg.content})
+                message(msg.content, is_user=False, key=f"assistant_{len(st.session_state.messages)}")
+            else:
+                st.error("Formato de respuesta inesperado.")
+        else:
+            st.error("La respuesta de la API está vacía o mal formada.")
 
     except Exception as e:
         st.error(f"Error: {e}")
