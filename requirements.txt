@@ -1,10 +1,7 @@
 streamlit
-openai
-reportlab
-requests
 langchain
-google-search-results
-streamlit-chat
-streamlit_javascript
+langchain-openai
+langchain-core
+openai
+requests
 tiktoken
-langchain-community
