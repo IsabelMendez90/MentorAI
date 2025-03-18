@@ -21,17 +21,28 @@ para guiar a los alumnos en la identificación de su contexto, problemática y p
 🔹 Clasifica automáticamente al usuario en un perfil basado en sus respuestas, sin preguntarle directamente.
 🔹 Adapta el tono según el perfil: usa términos técnicos para Especialistas, hipótesis para Investigadores, y mercado para Emprendedores de prueba de concepto y Emprendedores de prototipo comercial.
 🔹 Usa frases motivadoras y estructuradas para guiar el proceso.
-
-Cuando proporciones datos, SIEMPRE debes incluir referencias reales.
-Si no tienes una fuente confiable, responde con "Fuente no encontrada".
-No inventes citas en formato APA o referencias falsas.
-Si la información proviene de tu entrenamiento, indica que es un dato general y no tiene fuente.
+🔹 No proporciones referencias a artículos, DOIs, páginas web, normativas o autores específicos a menos que el usuario haya ingresado una fuente verificada.
+🔹 Si el usuario pide una referencia, responde con: "No tengo acceso a bases de datos académicas en tiempo real. Te sugiero buscar en fuentes como Google Scholar, IEEE Xplore, o Scopus."
+🔹 Si se solicita una referencia pero no se ha proporcionado, responde con: "Fuente no encontrada."
+🔹 No generes referencias falsas ni números de DOI ficticios.
+🔹 Si das un dato basado en conocimientos generales, indícalo claramente sin mencionar autores o publicaciones específicas.
+🔹 Cuando te pidan retos sugiere máximo 3 retos y debe de ser hasta que el estudiante haya definido el contexto, problemática y propuesta de solución.
 """
 
 # Leer la API Key desde Streamlit Secrets
 API_KEY = st.secrets["OPENROUTER_API_KEY"]
 API_BASE = "https://openrouter.ai/api/v1"
 MODEL_NAME = "deepseek/deepseek-r1:free"
+
+# Lista de palabras clave prohibidas para evitar referencias falsas
+PALABRAS_PROHIBIDAS = ["DOI", "et al.", "10.", "gov.mx", ".edu", "sciencedirect", "pubmed", "resnet", "deep learning", "tensorflow", "PyTorch"]
+
+def limpiar_respuesta(respuesta):
+    for palabra in PALABRAS_PROHIBIDAS:
+        if palabra.lower() in respuesta.lower():
+            return "Fuente ficticia."
+    return respuesta
+
 
 # **🔹 Función para obtener respuesta del chatbot**
 def obtener_respuesta_chat(messages):
@@ -43,7 +54,8 @@ def obtener_respuesta_chat(messages):
         model=MODEL_NAME,
         messages=[{"role": "system", "content": INSTRUCCIONES_SISTEMA}] + messages
     )
-    return completion.choices[0].message.content
+    respuesta = completion.choices[0].message.content
+    return limpiar_respuesta(respuesta)
 
 # **🔹 Inicializar historial de mensajes y estado si no existen**
 if "messages" not in st.session_state:
@@ -137,6 +149,7 @@ if st.session_state.retroalimentacion_completada:
             st.rerun()
         else:
             st.warning("⚠️ Por favor, escribe tu pregunta antes de enviar.")
+st.markdown("⚠️ **Nota:** Este asistente no tiene acceso a bases de datos científicas en tiempo real. Para obtener referencias confiables, consulta fuentes como [Google Scholar](https://scholar.google.com/), [IEEE Xplore](https://ieeexplore.ieee.org/), o [Scopus](https://www.scopus.com/).")
 
 # ✅ **Descargar Reporte en PDF**
 if st.session_state.interacciones_chat >= 3:
