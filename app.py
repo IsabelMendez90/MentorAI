@@ -3,15 +3,18 @@ import openai
 from io import BytesIO
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-import re
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 
-# ✅ **Rol Correcto del Chatbot (Solo para uso interno)** 
+#  **Rol Correcto del Chatbot (Solo para uso interno)** 
 INSTRUCCIONES_SISTEMA = """
 Eres Challenge Mentor AI, un asistente diseñado para ayudar a estudiantes de Mecatrónica en el modelo TEC21
 a definir su reto dentro del enfoque de Challenge-Based Learning (CBL). Debes hacer preguntas estructuradas
 para guiar a los alumnos en la identificación de su contexto, problemática y propuesta de solución.
 
 🔹 No propongas retos hasta que el estudiante haya definido el contexto, problemática y propuesta de solución.
+🔹 No les des ningún código a menos que el usuario te lo pida explícitametne.
 🔹 Pregunta sobre el estado del arte y su fuente de información.
 🔹 Investiga qué necesita su socio formador (SIEMENS, Rockwell, emprendimiento, etc.).
 🔹 Si el usuario dice que no sabe, explícale cómo responder con ejemplos claros.
@@ -136,23 +139,22 @@ if st.session_state.retroalimentacion_completada:
 if st.session_state.interacciones_chat >= 3:
     st.subheader("📄 Descargar Reporte de la Conversación")
     pdf_buffer = BytesIO()
-    pdf = canvas.Canvas(pdf_buffer, pagesize=letter)
-    pdf.setTitle("Reporte de Conversación - Challenge Mentor AI")
+    doc = SimpleDocTemplate(pdf_buffer, pagesize=letter)
+    styles = getSampleStyleSheet()
+    content = []
 
-    y = 750  # Posición vertical inicial
-    pdf.setFont("Helvetica-Bold", 14)
-    pdf.drawString(100, y, "Reporte de Conversación - Challenge Mentor AI")
-    y -= 30
+    content.append(Paragraph("Reporte de Conversación - Challenge Mentor AI", styles["Title"]))
+    content.append(Spacer(1, 12))
 
-    pdf.setFont("Helvetica", 12)
     for msg in st.session_state.messages:
-        pdf.drawString(100, y, f"{msg['role'].capitalize()}: {msg['content']}")
-        y -= 20
-        if y < 50:
-            pdf.showPage()
-            y = 750
+        role = "👨‍🎓 Usuario:" if msg["role"] == "user" else "🤖 Challenge Mentor AI:" 
+        content.append(Paragraph(f"<b>{role}</b> {msg['content']}", styles["Normal"]))
+        content.append(Spacer(1, 12))
 
-    pdf.save()
+    content.append(Paragraph("<b>Los retos sugeridos podrían ser:</b>", styles["Heading2"]))
+
+    doc.build(content)
     pdf_buffer.seek(0)
-
+    
     st.download_button(label="📄 Descargar Reporte en PDF", data=pdf_buffer, file_name="Reporte_Challenge_Mentor_AI.pdf", mime="application/pdf")
+
