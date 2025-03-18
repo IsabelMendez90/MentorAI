@@ -1,16 +1,16 @@
 import streamlit as st
-import openai
+import requests
+import json
+import os
 from io import BytesIO
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-import os
 
 # Configurar la API de OpenRouter
 API_KEY = os.getenv("OPENAI_API_KEY")
 BASE_URL = "https://openrouter.ai/api/v1"
 
-
-# ✅ **Rol Correcto del Chatbot (Solo para uso interno)**
+# ✅ **Instrucciones del Chatbot**
 INSTRUCCIONES_SISTEMA = """
 Eres Challenge Mentor AI, un asistente diseñado para ayudar a estudiantes de Mecatrónica en el modelo TEC21
 a definir su reto dentro del enfoque de Challenge-Based Learning (CBL). Debes hacer preguntas estructuradas
@@ -29,33 +29,46 @@ No inventes citas en formato APA o referencias falsas.
 Si la información proviene de tu entrenamiento, indica que es un dato general y no tiene fuente.
 """
 
-# **🔹 Función para obtener respuesta del chatbot**
+# 🔹 **Función para obtener respuesta del chatbot**
 def obtener_respuesta_chat(messages):
-    client = openai.OpenAI(
-        api_key=API_KEY,
-        base_url=BASE_URL
-    )
+    if not API_KEY:
+        return "❌ Error: No se encontró la clave API. Configúrala en Streamlit Cloud."
 
-    completion = client.chat.completions.create(
-        model="deepseek/deepseek-r1:free",
-        messages=[{"role": "system", "content": INSTRUCCIONES_SISTEMA}] + messages
-    )
-    return completion.choices[0].message.content
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json"
+    }
 
-# **🔹 Inicializar historial de mensajes y estado si no existen**
+    payload = {
+        "model": "deepseek/deepseek-r1:free",
+        "messages": [{"role": "system", "content": INSTRUCCIONES_SISTEMA}] + messages
+    }
+
+    try:
+        response = requests.post(f"{BASE_URL}/chat/completions", headers=headers, data=json.dumps(payload))
+
+        if response.status_code == 200:
+            return response.json()["choices"][0]["message"]["content"]
+        else:
+            return f"❌ Error en la API ({response.status_code}): {response.text}"
+
+    except requests.exceptions.RequestException as e:
+        return f"⚠️ Error de conexión: {e}"
+
+# 🔹 **Inicializar estado de la sesión**
 if "messages" not in st.session_state:
-    st.session_state.messages = []  # Eliminamos el mensaje del sistema del historial visible
+    st.session_state.messages = []
 
 if "responses" not in st.session_state:
-    st.session_state.responses = {}  # Almacena respuestas del usuario
+    st.session_state.responses = {}
 
 if "retroalimentacion_completada" not in st.session_state:
-    st.session_state.retroalimentacion_completada = False  # Estado de la retroalimentación
+    st.session_state.retroalimentacion_completada = False
 
 if "interacciones_chat" not in st.session_state:
-    st.session_state.interacciones_chat = 0  # Contador de interacciones en el chat
+    st.session_state.interacciones_chat = 0
 
-# **🔹 Título e introducción**
+# 🔹 **Interfaz en Streamlit**
 st.title("🤖 Challenge Mentor AI")
 st.subheader("Guía interactiva para definir tu reto en el modelo TEC21 de Mecatrónica.")
 st.markdown(
@@ -63,7 +76,7 @@ st.markdown(
     "Primero recibirás **retroalimentación** antes de generar un reto definitivo."
 )
 
-# **🔹 Preguntas clave en el formulario**
+# 🔹 **Formulario para ingresar datos del proyecto**
 with st.form("challenge_form"):
     nombre_proyecto = st.text_input("📌 Nombre del Proyecto", help="Ejemplo: Inspección automática con IA")
     contexto = st.text_area("🌍 Contexto", help="Describe en qué área de Mecatrónica se centra tu proyecto.")
@@ -83,7 +96,7 @@ with st.form("challenge_form"):
 
     submit_button = st.form_submit_button("📢 Dame una Retroalimentación")
 
-# **🔹 Procesar el formulario y mostrar respuestas**
+# 🔹 **Procesar el formulario y obtener retroalimentación**
 if submit_button:
     if not nombre_proyecto or not contexto or not problema or not propuesta_solucion:
         st.warning("⚠️ Completa todos los campos antes de continuar.")
@@ -108,7 +121,7 @@ if submit_button:
         st.session_state.retroalimentacion_completada = True
         st.rerun()
 
-# **🔹 Mostrar la conversación después de la retroalimentación**
+# 🔹 **Mostrar la conversación**
 if st.session_state.retroalimentacion_completada:
     st.subheader("📝 Historial de Conversación")
     for msg in st.session_state.messages:
@@ -117,7 +130,7 @@ if st.session_state.retroalimentacion_completada:
         elif msg["role"] == "assistant":
             st.markdown(f"🤖 **Challenge Mentor AI:** {msg['content']}")
 
-    # **🔹 Input del Usuario**
+    # 🔹 **Input del Usuario**
     user_input = st.text_area("💬 Escribe aquí tu pregunta:", height=100)
 
     if st.button("Enviar"):
@@ -129,30 +142,26 @@ if st.session_state.retroalimentacion_completada:
 
             st.session_state.messages.append({"role": "assistant", "content": chatbot_response})
 
-            st.session_state.interacciones_chat += 1  # Aumentar el contador
+            st.session_state.interacciones_chat += 1
             st.rerun()
         else:
             st.warning("⚠️ Por favor, escribe tu pregunta antes de enviar.")
 
-# **🔹 Botón de descarga solo después de 3 interacciones**
+# 🔹 **Botón de descarga de conversación**
 if st.session_state.interacciones_chat >= 3:
     st.subheader("📄 Descargar Reporte de la Conversación")
     pdf_buffer = BytesIO()
     pdf = canvas.Canvas(pdf_buffer, pagesize=letter)
     pdf.setTitle("Reporte de Conversación - Challenge Mentor AI")
 
-    y = 750  # Posición vertical inicial
-
+    y = 750
     pdf.setFont("Helvetica-Bold", 14)
     pdf.drawString(100, y, "Reporte de Conversación - Challenge Mentor AI")
     y -= 30
 
     pdf.setFont("Helvetica", 12)
     for msg in st.session_state.messages:
-        if msg["role"] == "user":
-            pdf.drawString(100, y, f"👨‍🎓 Usuario: {msg['content']}")
-        elif msg["role"] == "assistant":
-            pdf.drawString(100, y, f"🤖 Mentor AI: {msg['content']}")
+        pdf.drawString(100, y, f"{msg['role'].capitalize()}: {msg['content']}")
         y -= 20
         if y < 50:
             pdf.showPage()
