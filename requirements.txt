@@ -2,3 +2,6 @@ streamlit
 openai
 reportlab
 requests
+json
+os
+io
