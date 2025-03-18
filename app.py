@@ -8,7 +8,7 @@ API_KEY = "sk-or-v1-5d8983f4e80e57aff3c2c4c9fa4d7914cf60140ba0b9e9b1b8d18fe6c833
 API_BASE = "https://openrouter.ai/api/v1"
 MODEL_NAME = "deepseek/deepseek-r1:free"
 
-# Inicializar cliente OpenAI con nueva API
+# Inicializar cliente OpenAI con autenticación correcta
 client = openai.OpenAI(
     base_url=API_BASE,
     api_key=API_KEY
@@ -46,6 +46,7 @@ if user_input:
             model=MODEL_NAME,
             messages=st.session_state.messages,
             extra_headers={
+                "Authorization": f"Bearer {API_KEY}",  # ✅ Incluir la API key aquí
                 "HTTP-Referer": "https://yourwebsite.com",  # Opcional
                 "X-Title": "Streamlit GPT",  # Opcional
             }
@@ -62,5 +63,9 @@ if user_input:
         else:
             st.error("La respuesta de la API está vacía o mal formada.")
 
+    except openai.APIConnectionError:
+        st.error("Error de conexión con OpenAI. Verifica tu conexión a internet.")
+    except openai.AuthenticationError:
+        st.error("Error de autenticación. Verifica que tu API key sea válida.")
     except Exception as e:
         st.error(f"Error: {e}")
