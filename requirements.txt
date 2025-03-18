@@ -7,3 +7,4 @@ google-search-results
 streamlit-chat
 streamlit_javascript
 tiktoken
+langchain-community
