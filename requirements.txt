@@ -1,7 +1,8 @@
 streamlit
-langchain
-langchain-openai
-langchain-core
 openai
+reportlab
 requests
-tiktoken
+langchain
+google-search-results
+streamlit-chat
+streamlit_javascript
