@@ -37,16 +37,6 @@ API_KEY = st.secrets["OPENROUTER_API_KEY"]
 API_BASE = "https://openrouter.ai/api/v1"
 MODEL_NAME = "deepseek/deepseek-r1:free"
 
-# Lista de palabras clave prohibidas para evitar referencias falsas
-PALABRAS_PROHIBIDAS = ["DOI", "et al.", "10.", "gov.mx", ".edu", "sciencedirect", "pubmed", "resnet", "deep learning", "tensorflow", "PyTorch"]
-
-def limpiar_respuesta(respuesta):
-    for palabra in PALABRAS_PROHIBIDAS:
-        if palabra.lower() in respuesta.lower():
-            return "Fuente ficticia."
-    return respuesta
-
-
 # **🔹 Función para obtener respuesta del chatbot**
 def obtener_respuesta_chat(messages):
     client = openai.OpenAI(
@@ -58,7 +48,13 @@ def obtener_respuesta_chat(messages):
         messages=[{"role": "system", "content": INSTRUCCIONES_SISTEMA}] + messages
     )
     respuesta = completion.choices[0].message.content
-    return limpiar_respuesta(respuesta)
+
+    # Verificar si la respuesta contiene referencias falsas y eliminarlas
+    if "DOI" in respuesta or "et al." in respuesta or "gov.mx" in respuesta or "10." in respuesta:
+        return "Fuente no encontrada. La información proporcionada es de carácter general y debe verificarse en bases de datos académicas."
+
+    return respuesta
+
 
 # **🔹 Inicializar historial de mensajes y estado si no existen**
 if "messages" not in st.session_state:
