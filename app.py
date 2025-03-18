@@ -17,7 +17,7 @@ para guiar a los alumnos en la identificación de su contexto, problemática y p
 🔹 Dale una retroalimentación al usuario después de que haya enviado un "📢 Dame una Retroalimentación", y para ello sigue la fase Engage del CBL.
 🔹 Sigue la fase Engage del CBL, evaluando y guiando paso a paso la definición de:
   - 🌍 **Contexto**: ¿Qué problema general existe en el entorno?
-  - ❌ **Problemática**: ¿Cuál es la causa específica del problema en este contexto?
+  - 🚨 **Problemática**: ¿Cuál es la causa específica del problema en este contexto?
   - 💡 **Propuesta de solución**: ¿Qué solución concreta puede abordar esta problemática?
 🔹 Después de analizar estos tres elementos, **solicita al estudiante mejorar su respuesta** antes de avanzar.
 🔹 Personaliza la conversación según el perfil del usuario:
@@ -46,7 +46,7 @@ API_KEY = st.secrets["OPENROUTER_API_KEY"]
 API_BASE = "https://openrouter.ai/api/v1"
 MODEL_NAME = "deepseek/deepseek-r1:free"
 
-# **🔹 Función para obtener respuesta del chatbot**
+#  Función para obtener respuesta del chatbot
 def obtener_respuesta_chat(messages):
     client = openai.OpenAI(
         api_key=API_KEY,
@@ -65,7 +65,7 @@ def obtener_respuesta_chat(messages):
     return respuesta
 
 
-# **🔹 Inicializar historial de mensajes y estado si no existen**
+#  Inicializar historial de mensajes y estado si no existen
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -78,18 +78,18 @@ if "retroalimentacion_completada" not in st.session_state:
 if "interacciones_chat" not in st.session_state:
     st.session_state.interacciones_chat = 0
 
-# **🔹 Título e introducción**
+#  Título e introducción
 st.title("🤖 Challenge Mentor AI")
 st.subheader("Guía interactiva para definir tu reto en el modelo TEC21 de Mecatrónica.")
 st.markdown(
     "Este asistente te ayudará paso a paso a estructurar tu reto dentro del enfoque de **Challenge-Based Learning (CBL)**. "
     "Primero recibirás **retroalimentación** antes de generar un reto definitivo.")
 
-# ✅ **Formulario para capturar información del usuario**
+#  Formulario para capturar información del usuario
 with st.form("challenge_form"):
     nombre_proyecto = st.text_input("📌 Nombre del Proyecto")
     contexto = st.text_area("🌍 Contexto")
-    problema = st.text_area("❌ Problema Principal")
+    problema = st.text_area("🚨 Problema Principal")
     impacto = st.text_area("🎯 Impacto del Problema")
     propuesta_solucion = st.text_area("💡 Propuesta de Solución")
 
@@ -107,7 +107,7 @@ with st.form("challenge_form"):
 
     submit_button = st.form_submit_button("📢 Dame una Retroalimentación")
 
-# ✅ **Procesar información del formulario**
+#  Procesar información del formulario
 if submit_button:
     if not nombre_proyecto or not contexto or not problema or not propuesta_solucion:
         st.warning("⚠️ Completa todos los campos antes de continuar.")
@@ -133,7 +133,7 @@ if submit_button:
         st.session_state.retroalimentacion_completada = True
         st.rerun()
 
-# ✅ **Mostrar historial de conversación**
+#  Mostrar historial de conversación
 if st.session_state.retroalimentacion_completada:
     st.subheader("📝 Historial de Conversación")
     for msg in st.session_state.messages:
@@ -159,8 +159,8 @@ if st.session_state.retroalimentacion_completada:
             st.warning("⚠️ Por favor, escribe tu pregunta antes de enviar.")
 st.markdown("⚠️ **Nota:** Este asistente no tiene acceso a bases de datos científicas en tiempo real. Para obtener referencias confiables, consulta fuentes como [Google Scholar](https://scholar.google.com/), [IEEE Xplore](https://ieeexplore.ieee.org/), o [Scopus](https://www.scopus.com/).")
 
-# ✅ **Descargar Reporte en PDF**
-if st.session_state.interacciones_chat >= 3:
+#  Descargar Reporte en PDF
+if st.session_state.interacciones_chat >= 2:
     st.subheader("📄 Descargar Reporte de la Conversación")
     pdf_buffer = BytesIO()
     doc = SimpleDocTemplate(pdf_buffer, pagesize=letter)
