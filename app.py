@@ -96,24 +96,20 @@ st.markdown(
 #  Formulario para capturar información del usuario
 with st.form("challenge_form"):
     nombre_proyecto = st.text_input("📌 Nombre del Proyecto")
+    tipo_proyecto = st.selectbox(
+        "⚙️ Tipo de Reto",
+        ["Reto de Desarrollo de productos/procesos/servicios automatizados", "Reto de Investigación relacionado con Mecatrónica", "Reto de Emprendimiento tecnológico relacionados con Mecatrónica - Prueba de concepto", "Reto de Emprendimiento tecnológico relacionados con Mecatrónica - Prototipo comercial"]
+    )
+    perfil_usuario = st.selectbox(
+        "👤 Perfil del Usuario",
+        ["Innovador/a", "Emprendedor/a", "Investigador/a", "Solucionador/a"]
+    )
+    socio_formador = st.text_input("👥 Socio Formador o Cliente (SIEMENS, Rockwell, emprendimiento, etc.)")
     contexto = st.text_area("🌍 PROBLEMÁTICA POR RESOLVER (¿QUÉ?)")
     problema = st.text_area("🚨 CONTEXTO Y JUSTIFICACIÓN DE LA PROBLEMÁTICA (¿POR QUÉ?)")
     impacto = st.text_area("🎯 PRIMERAS IDEAS DE SOLUCIÓN VISUALIZADA POR EL SOCIO (¿COMO?)")
     propuesta_solucion = st.text_area("💡 RESULTADOS Y ALCANCES ESPERADOS")
     posibles_obstaculos = st.text_area("🚧 POSIBLES OBSTÁCULOS VISUALIZADOS PARA LOGRAR LOS OBJETIVOS")
-
-    
-    tipo_proyecto = st.selectbox(
-        "⚙️ Tipo de Reto",
-        ["Reto de Desarrollo de productos/procesos/servicios automatizados", "Reto de Investigación relacionado con Mecatrónica", "Reto de Emprendimiento tecnológico relacionados con Mecatrónica - Prueba de concepto", "Reto de Emprendimiento tecnológico relacionados con Mecatrónica - Prototipo comercial"]
-    )
-
-    perfil_usuario = st.selectbox(
-        "👤 Perfil del Usuario",
-        ["Innovador/a", "Emprendedor/a", "Investigador/a", "Solucionador/a"]
-    )
-
-    socio_formador = st.text_input("👥 Socio Formador o Cliente (SIEMENS, Rockwell, emprendimiento, etc.)")
 
     submit_button = st.form_submit_button("📢 Dame una Retroalimentación")
 
