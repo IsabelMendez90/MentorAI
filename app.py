@@ -180,6 +180,8 @@ text_style = ParagraphStyle("Text", parent=styles["Normal"], fontSize=10, spaceA
 
 # Función para convertir Markdown a párrafos con saltos de línea adecuados
 def markdown_to_paragraph(md_text, style=text_style):
+    # Reemplaza **texto** por <b>texto</b> para que ReportLab lo reconozca como negritas
+    md_text = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', md_text)  
     html_text = markdown2.markdown(md_text).replace("\n", "<br/>")  # Convierte Markdown a HTML con saltos de línea
     return Paragraph(html_text, style)
 
