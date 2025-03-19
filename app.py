@@ -177,11 +177,11 @@ doc = SimpleDocTemplate(pdf_buffer, pagesize=letter)
 
 # Definir estilos personalizados
 custom_title_style = ParagraphStyle("CustomTitle", parent=getSampleStyleSheet()["Heading1"], fontSize=14, spaceAfter=10, alignment=TA_LEFT, textColor="darkblue")
-custom_text_style = ParagraphStyle("CustomText", parent=getSampleStyleSheet()["Normal"], fontSize=10, spaceAfter=5, alignment=TA_LEFT)
+custom_text_style = ParagraphStyle("CustomText", parent=getSampleStyleSheet()["Normal"], fontSize=10, spaceAfter=10, leading=14, alignment=TA_LEFT)
 
-# Función para convertir Markdown a ReportLab
+# Función para convertir Markdown a ReportLab con saltos de línea
 def markdown_to_paragraph(md_text, style=custom_text_style):
-    html_text = markdown2.markdown(md_text)  # Convierte Markdown a HTML
+    html_text = markdown2.markdown(md_text).replace("\n", "<br/>")  # Convierte Markdown a HTML con saltos de línea
     return Paragraph(html_text, style)
 
 content = [Paragraph("Reporte de Conversación - Challenge Mentor AI", custom_title_style), Spacer(1, 12)]
@@ -190,7 +190,7 @@ for msg in st.session_state.messages:
     role = "👨‍🎓 Usuario:" if msg["role"] == "user" else "🤖 Challenge Mentor AI:"
     formatted_text = f"**{role}**\n\n{msg['content']}"
     content.append(markdown_to_paragraph(formatted_text))
-    content.append(Spacer(1, 12))
+    content.append(Spacer(1, 12))  # Añadir espacio entre respuestas
 
 doc.build(content)
 pdf_buffer.seek(0)
