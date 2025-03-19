@@ -180,8 +180,6 @@ text_style = ParagraphStyle("Text", parent=styles["Normal"], fontSize=10, spaceA
 
 # Función para convertir Markdown a párrafos con saltos de línea adecuados
 def markdown_to_paragraph(md_text, style=text_style):
-    # Reemplaza **texto** por <b>texto</b> para que ReportLab lo reconozca como negritas
-    md_text = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', md_text)  
     html_text = markdown2.markdown(md_text).replace("\n", "<br/>")  # Convierte Markdown a HTML con saltos de línea
     return Paragraph(html_text, style)
 
@@ -199,7 +197,7 @@ content.append(Spacer(1, 5))
 content.append(Paragraph(
     "Guía interactiva para definir tu reto en el modelo TEC21 de Mecatrónica. "
     "Este asistente te ayudará paso a paso a estructurar tu reto dentro del enfoque de Challenge-Based Learning (CBL). "
-    "Recibirás **PREGUNTAS ESENCIALES** para que propongas tu reto.", 
+    "Recibirás <b>PREGUNTAS ESENCIALES</b> para que propongas tu reto.", 
     description_style
 ))
 content.append(Spacer(1, 10))
