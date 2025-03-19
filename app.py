@@ -172,9 +172,9 @@ st.markdown("⚠️ **Nota:** Este asistente no tiene acceso a bases de datos ci
 
 # Estilos personalizados para el PDF
 styles = getSampleStyleSheet()
-title_style = ParagraphStyle("Title", parent=styles["Title"], fontSize=18, spaceAfter=10, alignment=TA_LEFT, textColor="darkblue")
-author_style = ParagraphStyle("Author", parent=styles["Normal"], fontSize=12, spaceAfter=8, alignment=TA_LEFT, textColor="black")
-description_style = ParagraphStyle("Description", parent=styles["Normal"], fontSize=11, spaceAfter=12, leading=14, alignment=TA_LEFT)
+title_style = ParagraphStyle("Title", parent=styles["Title"], fontSize=16, spaceAfter=10, alignment=TA_LEFT, textColor="darkblue")
+author_style = ParagraphStyle("Author", parent=styles["Normal"], fontSize=10, spaceAfter=8, alignment=TA_LEFT, textColor="black")
+description_style = ParagraphStyle("Description", parent=styles["Normal"], fontSize=10, spaceAfter=12, leading=14, alignment=TA_LEFT)
 subtitle_style = ParagraphStyle("Subtitle", parent=styles["Heading1"], fontSize=14, spaceAfter=10, alignment=TA_LEFT, textColor="darkblue")
 text_style = ParagraphStyle("Text", parent=styles["Normal"], fontSize=10, spaceAfter=10, leading=14, alignment=TA_LEFT)
 
