@@ -170,30 +170,50 @@ if st.session_state.retroalimentacion_completada:
             st.warning("⚠️ Por favor, escribe tu pregunta antes de enviar.")
 st.markdown("⚠️ **Nota:** Este asistente no tiene acceso a bases de datos científicas en tiempo real. Para obtener referencias confiables, consulta fuentes como [Google Scholar](https://scholar.google.com/), [IEEE Xplore](https://ieeexplore.ieee.org/), o [Scopus](https://www.scopus.com/).")
 
-# 📄 **Descargar Reporte en PDF**
-st.subheader("📄 Descargar Reporte de la Conversación")
-pdf_buffer = BytesIO()
-doc = SimpleDocTemplate(pdf_buffer, pagesize=letter)
+# Estilos personalizados para el PDF
+styles = getSampleStyleSheet()
+title_style = ParagraphStyle("Title", parent=styles["Title"], fontSize=18, spaceAfter=10, alignment=TA_LEFT, textColor="darkblue")
+author_style = ParagraphStyle("Author", parent=styles["Normal"], fontSize=12, spaceAfter=8, alignment=TA_LEFT, textColor="black")
+description_style = ParagraphStyle("Description", parent=styles["Normal"], fontSize=11, spaceAfter=12, leading=14, alignment=TA_LEFT)
+subtitle_style = ParagraphStyle("Subtitle", parent=styles["Heading1"], fontSize=14, spaceAfter=10, alignment=TA_LEFT, textColor="darkblue")
+text_style = ParagraphStyle("Text", parent=styles["Normal"], fontSize=10, spaceAfter=10, leading=14, alignment=TA_LEFT)
 
-# Definir estilos personalizados
-custom_title_style = ParagraphStyle("CustomTitle", parent=getSampleStyleSheet()["Heading1"], fontSize=14, spaceAfter=10, alignment=TA_LEFT, textColor="darkblue")
-custom_text_style = ParagraphStyle("CustomText", parent=getSampleStyleSheet()["Normal"], fontSize=10, spaceAfter=10, leading=14, alignment=TA_LEFT)
-
-# Función para convertir Markdown a ReportLab con saltos de línea
-def markdown_to_paragraph(md_text, style=custom_text_style):
+# Función para convertir Markdown a párrafos con saltos de línea adecuados
+def markdown_to_paragraph(md_text, style=text_style):
     html_text = markdown2.markdown(md_text).replace("\n", "<br/>")  # Convierte Markdown a HTML con saltos de línea
     return Paragraph(html_text, style)
 
-content = [Paragraph("Reporte de Conversación - Challenge Mentor AI", custom_title_style), Spacer(1, 12)]
+# **Generación del PDF**
+st.subheader("📄 Descargar Reporte de la Conversación")
+pdf_buffer = BytesIO()
+doc = SimpleDocTemplate(pdf_buffer, pagesize=letter)
+content = []
 
+# **Encabezado Personalizado**
+content.append(Paragraph("Challenge Mentor AI", title_style))
+content.append(Spacer(1, 5))
+content.append(Paragraph("Creado por Dra. J. Isabel Méndez Garduño & M.Sc. Miguel de J. Ramírez C., CMfgT", author_style))
+content.append(Spacer(1, 5))
+content.append(Paragraph(
+    "Guía interactiva para definir tu reto en el modelo TEC21 de Mecatrónica. "
+    "Este asistente te ayudará paso a paso a estructurar tu reto dentro del enfoque de Challenge-Based Learning (CBL). "
+    "Recibirás **PREGUNTAS ESENCIALES** para que propongas tu reto.", 
+    description_style
+))
+content.append(Spacer(1, 10))
+
+# **Subtítulo del reporte**
+content.append(Paragraph("Reporte de Conversación - Challenge Mentor AI", subtitle_style))
+content.append(Spacer(1, 12))
+
+# **Historial de Conversación**
 for msg in st.session_state.messages:
     role = "👨‍🎓 Usuario:" if msg["role"] == "user" else "🤖 Challenge Mentor AI:"
     formatted_text = f"**{role}**\n\n{msg['content']}"
     content.append(markdown_to_paragraph(formatted_text))
-    content.append(Spacer(1, 12))  # Añadir espacio entre respuestas
+    content.append(Spacer(1, 12))  # Espacio entre respuestas
 
 doc.build(content)
 pdf_buffer.seek(0)
 
 st.download_button(label="📄 Descargar Reporte en PDF", data=pdf_buffer, file_name="Reporte_Challenge_Mentor_AI.pdf", mime="application/pdf")
-
