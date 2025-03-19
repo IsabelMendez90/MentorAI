@@ -90,8 +90,7 @@ if "interacciones_chat" not in st.session_state:
 #  Título e introducción
 st.title("🤖 Challenge Mentor AI")
 st.markdown(
-    "Creadores: M.Sc. Miguel de J. Ramírez C., CMfgT "
-    "Dra. J. Isabel Méndez Garduño")
+    "Creadores: Dra. J. Isabel Méndez Garduño & M.Sc. Miguel de J. Ramírez C., CMfgT ")
 st.subheader("Guía interactiva para definir tu reto en el modelo TEC21 de Mecatrónica.")
 st.markdown(
     "Este asistente te ayudará paso a paso a estructurar tu reto dentro del enfoque de **Challenge-Based Learning (CBL)**. "
