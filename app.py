@@ -1,11 +1,11 @@
 import streamlit as st
 import openai
+import markdown2  
 from io import BytesIO
 from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.enums import TA_LEFT
 
 #  **Rol Correcto del Chatbot (Solo para uso interno)** 
 INSTRUCCIONES_SISTEMA = """
@@ -170,26 +170,30 @@ if st.session_state.retroalimentacion_completada:
             st.warning("⚠️ Por favor, escribe tu pregunta antes de enviar.")
 st.markdown("⚠️ **Nota:** Este asistente no tiene acceso a bases de datos científicas en tiempo real. Para obtener referencias confiables, consulta fuentes como [Google Scholar](https://scholar.google.com/), [IEEE Xplore](https://ieeexplore.ieee.org/), o [Scopus](https://www.scopus.com/).")
 
-#  Descargar Reporte en PDF
-if st.session_state.interacciones_chat >= 0:
-    st.subheader("📄 Descargar Reporte de la Conversación")
-    pdf_buffer = BytesIO()
-    doc = SimpleDocTemplate(pdf_buffer, pagesize=letter)
-    styles = getSampleStyleSheet()
-    content = []
+# 📄 **Descargar Reporte en PDF**
+st.subheader("📄 Descargar Reporte de la Conversación")
+pdf_buffer = BytesIO()
+doc = SimpleDocTemplate(pdf_buffer, pagesize=letter)
 
-    content.append(Paragraph("Reporte de Conversación - Challenge Mentor AI", styles["Title"]))
+# Definir estilos personalizados
+custom_title_style = ParagraphStyle("CustomTitle", parent=getSampleStyleSheet()["Heading1"], fontSize=14, spaceAfter=10, alignment=TA_LEFT, textColor="darkblue")
+custom_text_style = ParagraphStyle("CustomText", parent=getSampleStyleSheet()["Normal"], fontSize=10, spaceAfter=5, alignment=TA_LEFT)
+
+# Función para convertir Markdown a ReportLab
+def markdown_to_paragraph(md_text, style=custom_text_style):
+    html_text = markdown2.markdown(md_text)  # Convierte Markdown a HTML
+    return Paragraph(html_text, style)
+
+content = [Paragraph("Reporte de Conversación - Challenge Mentor AI", custom_title_style), Spacer(1, 12)]
+
+for msg in st.session_state.messages:
+    role = "👨‍🎓 Usuario:" if msg["role"] == "user" else "🤖 Challenge Mentor AI:"
+    formatted_text = f"**{role}**\n\n{msg['content']}"
+    content.append(markdown_to_paragraph(formatted_text))
     content.append(Spacer(1, 12))
 
-    for msg in st.session_state.messages:
-        role = "👨‍🎓 Usuario:" if msg["role"] == "user" else "🤖 Challenge Mentor AI:" 
-        content.append(Paragraph(f"<b>{role}</b> {msg['content']}", styles["Normal"]))
-        content.append(Spacer(1, 12))
+doc.build(content)
+pdf_buffer.seek(0)
 
-    
-
-    doc.build(content)
-    pdf_buffer.seek(0)
-    
-    st.download_button(label="📄 Descargar Reporte en PDF", data=pdf_buffer, file_name="Reporte_Challenge_Mentor_AI.pdf", mime="application/pdf")
+st.download_button(label="📄 Descargar Reporte en PDF", data=pdf_buffer, file_name="Reporte_Challenge_Mentor_AI.pdf", mime="application/pdf")
 
