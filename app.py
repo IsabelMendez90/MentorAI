@@ -96,19 +96,21 @@ st.markdown(
 #  Formulario para capturar información del usuario
 with st.form("challenge_form"):
     nombre_proyecto = st.text_input("📌 Nombre del Proyecto")
-    contexto = st.text_area("🌍 Contexto")
-    problema = st.text_area("🚨 Problema Principal")
-    impacto = st.text_area("🎯 Impacto del Problema")
-    propuesta_solucion = st.text_area("💡 Propuesta de Solución")
+    contexto = st.text_area("🌍 PROBLEMÁTICA POR RESOLVER (¿QUÉ?)")
+    problema = st.text_area("🚨 CONTEXTO Y JUSTIFICACIÓN DE LA PROBLEMÁTICA (¿POR QUÉ?)")
+    impacto = st.text_area("🎯 PRIMERAS IDEAS DE SOLUCIÓN VISUALIZADA POR EL SOCIO (¿COMO?)")
+    propuesta_solucion = st.text_area("💡 RESULTADOS Y ALCANCES ESPERADOS")
+    posibles_obstaculos = st.text_area("🚧 POSIBLES OBSTÁCULOS VISUALIZADOS PARA LOGRAR LOS OBJETIVOS")
 
+    
     tipo_proyecto = st.selectbox(
-        "⚙️ Tipo de Proyecto",
-        ["Desarrollo tecnológico", "Investigación", "Emprendimiento - Prueba de concepto", "Emprendimiento - Prototipo comercial"]
+        "⚙️ Tipo de Reto",
+        ["Reto de Desarrollo de productos/procesos/servicios automatizados", "Reto de Investigación relacionado con Mecatrónica", "Reto de Emprendimiento tecnológico relacionados con Mecatrónica - Prueba de concepto", "Reto de Emprendimiento tecnológico relacionados con Mecatrónica - Prototipo comercial"]
     )
 
     perfil_usuario = st.selectbox(
         "👤 Perfil del Usuario",
-        ["Ingeniero Innovador", "Emprendedor Estratégico", "Investigador Analítico", "Solucionador Creativo", "Especialista Técnico"]
+        ["Innovador/a", "Emprendedor/a", "Investigador/a", "Solucionador/a"]
     )
 
     socio_formador = st.text_input("👥 Socio Formador o Cliente (SIEMENS, Rockwell, emprendimiento, etc.)")
@@ -122,13 +124,15 @@ if submit_button:
     else:
         st.session_state.responses = {
             "📌 Nombre del Proyecto": nombre_proyecto,
-            "🌍 Contexto": contexto,
-            "❌ Problema Principal": problema,
-            "🎯 Impacto": impacto,
-            "💡 Propuesta de Solución": propuesta_solucion,
-            "⚙️ Tipo de Proyecto": tipo_proyecto,
+            "⚙️ Tipo de Reto": tipo_proyecto,
             "👤 Perfil del Usuario": perfil_usuario,
-            "👥 Socio Formador o Cliente": socio_formador
+            "👥 Socio Formador o Cliente": socio_formador,
+            "🌍 PROBLEMÁTICA POR RESOLVER (¿QUÉ?)": contexto,
+            "❌ CONTEXTO Y JUSTIFICACIÓN DE LA PROBLEMÁTICA (¿POR QUÉ?)": problema,
+            "🎯 PRIMERAS IDEAS DE SOLUCIÓN VISUALIZADA POR EL SOCIO (¿COMO?)": impacto,
+            "💡 RESULTADOS Y ALCANCES ESPERADOS": propuesta_solucion,
+            "🚧 POSIBLES OBSTÁCULOS VISUALIZADOS PARA LOGRAR LOS OBJETIVOS": posibles_obstaculos,
+                       
         }
 
         user_message = "\n".join([f"**{key}:** {value}" for key, value in st.session_state.responses.items()])
