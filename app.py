@@ -171,7 +171,7 @@ if st.session_state.retroalimentacion_completada:
 st.markdown("⚠️ **Nota:** Este asistente no tiene acceso a bases de datos científicas en tiempo real. Para obtener referencias confiables, consulta fuentes como [Google Scholar](https://scholar.google.com/), [IEEE Xplore](https://ieeexplore.ieee.org/), o [Scopus](https://www.scopus.com/).")
 
 #  Descargar Reporte en PDF
-if st.session_state.interacciones_chat >= 2:
+if st.session_state.interacciones_chat >= 1:
     st.subheader("📄 Descargar Reporte de la Conversación")
     pdf_buffer = BytesIO()
     doc = SimpleDocTemplate(pdf_buffer, pagesize=letter)
