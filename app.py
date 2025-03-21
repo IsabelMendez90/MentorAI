@@ -225,8 +225,8 @@ def generar_word(messages):
     return word_buffer
 
 # --- Nombre dinámico de archivo ---
-fecha_actual = datetime.now().strftime("%Y%m%d")
-nombre_archivo = f"{fecha_actual}-Reporte_CBL"
+fecha_hora_actual = datetime.now().strftime("%Y%m%d-%H%M")
+nombre_archivo = f"{fecha_hora_actual}-Reporte_CBL"
 
 # --- Botones de descarga ---
 st.subheader("📄 Descargar Reportes")
