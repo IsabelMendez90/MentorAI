@@ -6,6 +6,9 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.enums import TA_LEFT
+from docx import Document
+from docx.shared import Pt
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 
 #  **Rol Correcto del Chatbot (Solo para uso interno)** 
 INSTRUCCIONES_SISTEMA = """
@@ -217,3 +220,38 @@ doc.build(content)
 pdf_buffer.seek(0)
 
 st.download_button(label="📄 Descargar Reporte en PDF", data=pdf_buffer, file_name="Reporte_Challenge_Mentor_AI.pdf", mime="application/pdf")
+
+# Función para generar el archivo Word
+def generar_word(messages):
+    doc = Document()
+    
+    # Título y encabezado
+    doc.add_heading('Challenge Mentor AI', level=0)
+    doc.add_paragraph("Creado por Dra. J. Isabel Méndez Garduño & M.Sc. Miguel de J. Ramírez C., CMfgT")
+    doc.add_paragraph("Guía interactiva para definir tu reto en el modelo TEC21 de Mecatrónica. Este asistente te ayudará a estructurar tu reto dentro del enfoque de Challenge-Based Learning (CBL). Recibirás PREGUNTAS ESENCIALES para que propongas tu reto.")
+    
+    doc.add_heading("Reporte de Conversación - Challenge Mentor AI", level=1)
+    
+    # Historial de mensajes
+    for msg in messages:
+        role = "👨‍🎓 Usuario:" if msg["role"] == "user" else "🤖 Challenge Mentor AI:"
+        para = doc.add_paragraph()
+        run = para.add_run(f"{role}\n{msg['content']}\n")
+        run.font.size = Pt(11)
+        para.alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
+    
+    # Guardar en buffer
+    word_buffer = BytesIO()
+    doc.save(word_buffer)
+    word_buffer.seek(0)
+    return word_buffer
+
+# Descargar archivo en Word
+st.subheader("📄 Descargar Reporte de la Conversación (Word)")
+word_buffer = generar_word(st.session_state.messages)
+st.download_button(
+    label="📄 Descargar Reporte en Word",
+    data=word_buffer,
+    file_name="Reporte_Challenge_Mentor_AI.docx",
+    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+)
