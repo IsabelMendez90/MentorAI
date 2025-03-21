@@ -3,3 +3,4 @@ openai
 reportlab
 streamlit-chat
 markdown2
+python-docx
